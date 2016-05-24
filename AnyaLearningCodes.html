@@ -1,61 +1,57 @@
-<html>
-	<head>
+#
+#    Simple GAE Database add/update example
+#    Aurthor: Kevin Tu
+#
 
-		<style>
-		body {
-			background-image: url('http://image.shutterstock.com/z/stock-vector-pop-art-woman-omg-sign-vector-illustration-242230969.jpg');
-			background-size:     cover;                      /* <------ */
-    background-repeat:   no-repeat;
-    background-position: center center;              /* optional, center the image */
-		}
+import webapp2
+from google.appengine.ext import db
 
-h1{
-	color: red;
-	font-family: 'Helvetica Neue', Helvetica;
-	font-weight: 100;
-	font-size: 60px;
-	margin: 0px;
-}
+class MainHandler(webapp2.RequestHandler):
+    def get(self):
+        self.response.out.write("""
+        <form action="/" enctype="multipart/form-data" method="post">
+            <div><label>keyname(*):</label></div>
+            <div><input type="text" name="keyname" value=''></div>
+            <div><label>name:</label></div>
+            <div><input type="text" name="name" value=''></div>
+            <div><label>value:</label></div>
+            <div><input type="text" name="value" value=''></div>
+            <div><input type="submit" value="submit" /></div>
+        </form>
+        </body>
+        </html>""")
 
-p{
-	color: white;
-	font-family: 'Helvetica Neue', Helvetica;
-	font-weight: 200;
-	font-size: 20px;
-}
-	.box {
-		background-color: rgba(0,0,0,0.5);
-		padding: 20px;
-		width: 300px;
-		margin: 100px auto;
-		text-align: center;
-}
+        success = self.request.get("success")
+        if success :
+            dbkeyname = self.request.get('keyname')
+            dbname = self.request.get('name')
+            dbvalue = self.request.get('value')
+            self.response.out.write("<br/><b>Update DB success!</b><br/>")
+            self.response.out.write("key_name=" + dbkeyname + "  name=" + dbname + "  value=" + dbvalue)
 
-		</style>
-	</head>
+    def post(self):
+        dbkeyname = self.request.get('keyname')
+        dbname = self.request.get('name')
+        dbvalue = self.request.get('value')
 
-<body>
-<div class="box">
-	<h1> Anya </h1>
+        getDB = testDB.get_by_key_name(dbkeyname)
+        if getDB is not None :
+            getDB.testDBname = dbname
+            getDB.testDBvalue = dbvalue
+            getDB.put()
+        else:
+            updateDb =  testDB (
+                key_name = dbkeyname,
+                testDBname = dbname,
+                testDBvalue = dbvalue
+            )
+            updateDb.put()
+        self.redirect("/?success=1&keyname=" + dbkeyname + "&name=" + dbname + "&value=" + dbvalue)
 
-	<p> 
-	<i>Coding "Chainik"</i>
-	</p>
+class testDB(db.Model):
+    testDBname = db.StringProperty()
+    testDBvalue = db.StringProperty()
 
-<p>
-Marketing "Geek"
-Wandering Mind
-^^________^^
-</p>
-
-<br />
-<br />
-<br />
-
-<a href="https://www.linkedin.com/in/anya-nguyen-945b5743">
-<img src="c:\Users\Pappricot\Documents\LINKEDIN.png" />
-
-</div>
-</body>
-
-</html>
+app = webapp2.WSGIApplication([
+    ('/', MainHandler)
+], debug=True)
